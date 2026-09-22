@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASMR Шоколадный Кликер</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle, #2d1810 0%, #120907 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #e6c280;
+      overflow-x: hidden;
+      padding: 20px 0;
+    }
+    .counter-box {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .counter-label {
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+    .counter-value {
+      font-size: 46px;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+    .bar-wrapper {
+      perspective: 800px;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .chocolate-bar {
+      width: 240px;
+      height: 330px;
+      background: #4a2711;
+      border-radius: 12px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 10px;
+      box-shadow: 
+        0 20px 40px rgba(0,0,0,0.8),
+        inset 0 2px 4px rgba(255,255,255,0.2),
+        inset 0 -4px 8px rgba(0,0,0,0.6);
+      transition: transform 0.08s ease;
+    }
+    .bar-wrapper:active .chocolate-bar {
+      transform: scale(0.97) rotateX(4deg);
+    }
+    .piece {
+      background: linear-gradient(145deg, #5c3218, #3b1e0c);
+      border-radius: 6px;
+      box-shadow: 
+        inset 2px 2px 4px rgba(255,255,255,0.15),
+        inset -2px -2px 6px rgba(0,0,0,0.7),
+        2px 2px 4px rgba(0,0,0,0.4);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s ease;
+    }
+    .piece::after {
+      content: '';
+      width: 60%;
+      height: 60%;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 3px;
+    }
+    .piece.cracking {
+      animation: crackShake 0.2s ease;
+    }
+    @keyframes crackShake {
+      0% { transform: translate(0, 0) scale(1); }
+      30% { transform: translate(-2px, 1px) scale(0.96); filter: brightness(1.2); }
+      70% { transform: translate(2px, -1px) scale(0.98); }
+      100% { transform: translate(0, 0) scale(1); }
+    }
+    .hint {
+      margin-top: 16px;
+      font-size: 13px;
+      color: rgba(230, 194, 128, 0.6);
+    }
+
+    /* Блок доната */
+    .donate-card {
+      margin-top: 28px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(230, 194, 128, 0.25);
+      border-radius: 12px;
+      padding: 16px 20px;
+      text-align: center;
+      max-width: 320px;
+      backdrop-filter: blur(8px);
+    }
+    .donate-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #ffd89b;
+      margin-bottom: 4px;
+    }
+    .donate-desc {
+      font-size: 12px;
+      color: rgba(230, 194, 128, 0.7);
+      margin-bottom: 8px;
+    }
+    .donate-badge {
+      display: inline-block;
+      background: #fed330;
+      color: #1a1a1a;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    .donate-phone {
+      font-size: 16px;
+      font-weight: bold;
+      color: #fff;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+    .donate-btn {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.2s ease, transform 0.1s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .copy-btn {
+      background: #844c27;
+      color: #fff;
+      border: none;
+    }
+    .tbank-btn {
+      background: #fed330;
+      color: #1a1a1a;
+      border: none;
+    }
+    .donate-btn:active {
+      transform: scale(0.96);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="counter-box">
+    <div class="counter-label">Сломано кусочков</div>
+    <div class="counter-value" id="counter">0</div>
+  </div>
+
+  <div class="bar-wrapper" id="chocolate">
+    <div class="chocolate-bar">
+      <div class="piece"></div>
+      <div class="piece"></div>
+      <div class="piece"></div>
+      <div class="piece"></div>
+      <div class="piece"></div>
+      <div class="piece"></div>
+    </div>
+  </div>
+
+  <div class="hint">Нажимай на плитку, чтобы отломить дольку</div>
+
+  <!-- Блок доната через Т-Банк -->
+  <div class="donate-card">
+    <div class="donate-title">☕ На чай автору</div>
+    <div class="donate-desc">Понравился хруст? Поддержи проект</div>
+    <div><span class="donate-badge">Т-Банк (СБП)</span></div>
+    <div class="donate-phone">+7 925 173 47 37</div>
+    <div class="btn-group">
+      <button class="donate-btn copy-btn" id="copyBtn" onclick="copyPhone()">Скопировать</button>
+      <a class="donate-btn tbank-btn" href="https://www.tbank.ru/rm/payment?phone=79251734737" target="_blank">Перевести</a>
+    </div>
+  </div>
+
+  <script>
+    let count = 0;
+    const counterElement = document.getElementById('counter');
+    const chocolate = document.getElementById('chocolate');
+    const pieces = document.querySelectorAll('.piece');
+
+    let audioCtx = null;
+
+    function playSnapSound() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      const osc = audioCtx.createOscillator();
+      const oscGain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(140, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.08);
+      oscGain.gain.setValueAtTime(1, audioCtx.currentTime);
+      oscGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+
+      osc.connect(oscGain);
+      oscGain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.08);
+
+      const bufferSize = audioCtx.sampleRate * 0.05;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.25));
+      }
+
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(1800, audioCtx.currentTime);
+      filter.Q.setValueAtTime(3, audioCtx.currentTime);
+
+      const noiseGain = audioCtx.createGain();
+      noiseGain.gain.setValueAtTime(0.7, audioCtx.currentTime);
+      noiseGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+
+      noise.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(audioCtx.destination);
+
+      noise.start();
+    }
+
+    chocolate.addEventListener('pointerdown', () => {
+      count++;
+      counterElement.textContent = count;
+      playSnapSound();
+
+      const randomPiece = pieces[Math.floor(Math.random() * pieces.length)];
+      randomPiece.classList.remove('cracking');
+      void randomPiece.offsetWidth;
+      randomPiece.classList.add('cracking');
+    });
+
+    function copyPhone() {
+      const phoneNumber = '+79251734737';
+      navigator.clipboard.writeText(phoneNumber).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.textContent = 'Скопировано! ✓';
+        btn.style.background = '#4CAF50';
+        setTimeout(() => {
+          btn.textContent = 'Скопировать';
+          btn.style.background = '#844c27';
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
